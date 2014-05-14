@@ -1,0 +1,182 @@
+#!/bin/bash
+
+exec 3<&1
+exec 4<&2
+exec 1>&-
+exec 2>&-
+
+#set -x
+
+trap control_c SIGINT
+
+[ ! -f "/usr/bin/rendu_lib" ] && echo "/usr/bin/rendu_lib not found" >&4 && exit 21
+. /usr/bin/rendu_lib
+
+VERSION=0.7
+
+[ -z "${MASTER}" ] && MASTER="${LOGIN}"
+
+GIT="git"
+GIT_HOST="git.epitech.eu"
+GIT_LOGIN="${LOGIN}"
+
+BACKUP_DIR="${BASE_DIR}/.tmp/backup"
+
+control_c()
+{
+    alert "Control-C caught. Relaunch the command if you want to be sure everything went as expected, and also rendu --info to check by yourself"
+    exit 42
+}
+
+config_git_account()
+{
+    ${GIT} config --global user.name "${LOGIN}" || error "Config git account failed"
+    ${GIT} config --global user.email "${LOGIN}@epitech.eu" || error "Config git account failed"
+}
+
+check_subgit_repo()
+{
+    nb=`find . -mindepth 2 -type d -name .git | wc -l`
+    [ $nb -gt 0 ] && error "You have a turned-in project inside this project.
+Remove '.git' from subdir or don't use this script if you know what you do."
+}
+
+check_valid_repo()
+{
+    [ -d ".git" ] && return 0
+    verbose "Syncing with remote server..."
+    if [ `ls -a | wc -w` -gt "2" ]; then empty=0; else empty=1; fi
+    if [ $empty -eq 0 ]
+    then #make backup
+	rm -rf "${BACKUP_DIR}/${PROJECT}" && mkdir -p "${BACKUP_DIR}/${PROJECT}"
+	rm -rf ./.git/
+	find ./ -maxdepth 1 -mindepth 1 -name "*" -exec mv -f {} "${BACKUP_DIR}/${PROJECT}/" \;
+    fi
+    ${GIT} clone "${GIT_LOGIN}@${GIT_HOST}:/${MASTER}/${REPO}" .
+    if [ $? -ne 0 ]; then
+        cp -rf ${BACKUP_DIR}/${PROJECT}/* ./
+	error "Can't sync with remote server.
+    1) You need to setup the repository with rendu_init
+    2) The repository must be built (rendu_init --info)
+    3) You must have rights on it (rendu_init --info)"
+    fi
+    verbose "Initial commit (for testing purpose)"
+    ${GIT} commit --allow-empty -m "initial commit" && ${GIT} push -u origin master
+    if [ $? -ne 0 ]; then
+	warning "First test commit failed. Please contact the staff about this fail."
+    fi
+    if [ $empty -eq 0 ]
+    then #get back backup
+	find "${BACKUP_DIR}/${PROJECT}/" -maxdepth 1 -mindepth 1 -name "*" -exec cp -rf {} ./ \; && rm -rf "${BACKUP_DIR}/${PROJECT}"
+    fi
+}
+
+git_check_network()
+{
+    nc -z "${GIT_HOST}" 22 || error "Can't join turning in servers. Start checking your connection."
+}
+
+save_project()
+{
+    remote_project_name=`${GIT} config --get remote.origin.url | sed -e "s|${LOGIN}@${GIT_HOST}:/.\+/\(.\+\)|\\1|"`
+    [ "$remote_project_name" != "${PROJECT}" ] && alert "You have rename the root project directory.
+The project will still be save with the previous name.
+If you're scared of what you did, please refer to the staff NOW !"
+    verbose "Saving your project: $remote_project_name"
+     if commit_project || [ `${GIT} diff origin/master master | wc -l` -ne 0 ]; then
+	 push_project && verbose "Project successfully turned in !"
+     fi
+}
+
+commit_project()
+{
+    [ `${GIT} status --porcelain | wc -l` -eq 0 ] && verbose "Nothing has changed since last time" && return 1
+    ${GIT} add --all
+    ${GIT} commit -a -q -m "rendu by ${LOGIN} on $(uname -n) @ $(date)" || error "Failed to save your project. You might contact the staff."
+    return 0
+}
+
+push_project()
+{
+    ${GIT} push --force origin master || error "Failed to push new data to server. Check your network connection. Then, you might contact the staff"
+}
+
+rendu()
+{
+    verbose "Turning in: ${PROJECT}"
+    check_valid_repo
+    check_subgit_repo
+    save_project
+}
+
+init()
+{
+    _init
+    [ ! -f "${HOME}/.ssh/id_rsa_blih" ] && error "No sshkey found. Run rendu_init first !"
+    if [ -z "${SSH_AGENT_PID}" ]
+    then
+	warning 'You MUST execute this in your shell before doing anything else:'
+	verbose 'eval `ssh-agent`'
+	exit 2
+    fi
+    ssh-add "${HOME}/.ssh/id_rsa_blih" || error "Can't add sshkey to agent"
+    [ ! -f "${HOME}/.gitconfig" ] && config_git_account
+    git_check_network
+}
+
+info()
+{
+    [ ! -d ".git" ] && error "No info to give because you don't have run 'rendu' yet"
+    verbose ""
+    $GIT --no-pager log origin/master -n 1 --pretty=format:"%nLast turn in by %an on %aD %n%b%n" >&3 2>&4
+    verbose "Turned in files:"
+    $GIT --no-pager ls-tree -r -t origin/master --name-only >&3 2>&4
+}
+
+usage()
+{
+    verbose "
+$1 => Turn in your current project. You must be at the root project's directory (e.g.: ~/rendu/my_project/)
+
+$1 -i | --info => Show infos on current turn in state.
+
+$1 -h | --help => This usage.
+$1 -v | --version => Version.
+
+Hint
+
+    Login: You may change the login used by setting LOGIN in your env (e.g.: LOGIN=login_x rendu)
+    Work group (beta): You might set the MASTER group login in your env (e.g.: MASTER=login_y rendu)"
+}
+
+#which python3 >/dev/null 2>/dev/null || error "Python3 not installed"
+#which blih >/dev/null 2>/dev/null || error "API not installed"
+#which git >/dev/null 2>/dev/null || error "Git not installed"
+
+if [ $# -gt 1 ]
+then
+    usage
+    exit 1
+fi
+if [ $# -eq 0 ]
+then
+    init
+    rendu
+else
+    case "$1" in
+	"--info" | "-i")
+	    init
+	    info
+	    ;;
+	"--help" | "-h")
+	    usage "$0"
+	;;
+    	"--version" | "-v")
+	    verbose "${VERSION}"
+	    ;;
+	*)
+	    usage "$0" && exit 1
+	    ;;
+    esac
+fi
+exit 0
