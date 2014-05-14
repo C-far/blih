@@ -5,12 +5,12 @@
 ## Login   <dugal_c@epitech.net>
 ## 
 ## Started on  Wed May 14 10:29:22 2014 Clement DUGAL
-## Last update Wed May 14 11:46:38 2014 Clement DUGAL
+## Last update Wed May 14 13:35:13 2014 Clement DUGAL
 ##
 
 info()
 {
-    echo "INFO: $1"
+    echo "$1"
 }
 
 error()
@@ -26,21 +26,25 @@ check_root()
     fi
 }
 
+get_md5()
+{
+    md5sum $1 | cut -d ' ' -f1
+}
+
+check_file()
+{
+    if [ ! -f /usr/bin/$1 ] || [ ! `get_md5 /usr/bin/$1` = `get_md5 files/$1` ]; then
+	info "Copie de $1..."
+	sudo cp files/$1 /usr/bin/
+    fi
+}
+
 copy_files()
 {
-    if [ ! -f /usr/bin/rendu ]; then
-	info "Copie de rendu..."
-	sudo cp files/rendu /usr/bin/
-    elif [ ! -f /usr/bin/rendu_init ]; then
-	info "Copie de rendu_init..."
-	sudo cp files/rendu_init /usr/bin/
-    elif [ ! -f /usr/bin/rendu_lib ]; then
-	info "Copie de rendu_lib..."
-	sudo cp files/rendu_lib /usr/bin/
-    elif [ ! -f /usr/bin/blih ]; then
-	info "Copie de blih..."
-	sudo cp files/blih /usr/bin/
-    fi
+    check_file rendu
+    check_file rendu_init
+    check_file rendu_lib
+    check_file blih
 }
 
 generate_sshkey()
