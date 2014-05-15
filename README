@@ -1,1 +1,12 @@
-./setup.sh
+GIT POUR EPITECH
+
+Changelog
+
+1.0 :
+- Installation des scritps de rendu et blih
+- Génération d'une clé SSH
+- Upload de la clé SSH publique sur blih
+
+1.1 :
+- Gestion des logins différents de celui de la session
+- Vérification du login en ligne
