@@ -5,7 +5,7 @@
 ## Login   <dugal_c@epitech.net>
 ## 
 ## Started on  Wed May 14 10:29:22 2014 Clement DUGAL
-## Last update Wed May 14 13:35:13 2014 Clement DUGAL
+## Last update Thu May 15 18:49:41 2014 Clement DUGAL
 ##
 
 info()
@@ -22,6 +22,20 @@ check_root()
 {
     if [ `whoami` = 'root' ]; then
 	error "Vous ne devez pas lancer ce script en root"
+	exit
+    fi
+}
+
+get_login()
+{
+    read login
+    echo $login
+}
+
+check_login()
+{
+    if [ ${#1} -lt 4 ] || [ `curl -o /dev/null --silent --head --write-out '%{http_code}\n' https://cdn.local.epitech.eu/userprofil/profilview/$1.jpg` = "404" ]; then
+	error "Login incorrect"
 	exit
     fi
 }
@@ -58,15 +72,18 @@ generate_sshkey()
 upload_sshkey()
 {
     info "Upload de votre cle publique..."
-    blih sshkey upload ~/.ssh/id_rsa.pub
+    blih -u $1 sshkey upload ~/.ssh/id_rsa.pub
 }
 
 main()
 {
+    info "Entrez votre login EPITECH :"
+    login=`get_login`
+    check_login $login
     check_root
     copy_files
     generate_sshkey
-    upload_sshkey
+    upload_sshkey $login
 }
 
 main
