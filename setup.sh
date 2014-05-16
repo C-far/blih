@@ -5,7 +5,7 @@
 ## Login   <dugal_c@epitech.net>
 ## 
 ## Started on  Wed May 14 10:29:22 2014 Clement DUGAL
-## Last update Fri May 16 18:22:00 2014 Clement DUGAL
+## Last update Fri May 16 18:27:21 2014 Clement DUGAL
 ##
 
 info()
@@ -67,8 +67,8 @@ copy_files()
 generate_sshkey()
 {
     if [ ! -f ~/.ssh/id_rsa ]; then
-	info "Generation d'une cle SSH..."
-	echo ssh-keygen -t rsa -b 4096 -f ~/.ssh/id_rsa -q -N ""
+	info "Generation d'une cle SSH.."
+	ssh-keygen -t rsa -b 4096 -f ~/.ssh/id_rsa -q -N ""
     fi
 }
 
