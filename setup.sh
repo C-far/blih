@@ -5,7 +5,7 @@
 ## Login   <dugal_c@epitech.net>
 ## 
 ## Started on  Wed May 14 10:29:22 2014 Clement DUGAL
-## Last update Thu May 15 18:49:41 2014 Clement DUGAL
+## Last update Fri May 16 18:22:00 2014 Clement DUGAL
 ##
 
 info()
@@ -26,17 +26,20 @@ check_root()
     fi
 }
 
-get_login()
-{
-    read login
-    echo $login
-}
-
 check_login()
 {
     if [ ${#1} -lt 4 ] || [ `curl -o /dev/null --silent --head --write-out '%{http_code}\n' https://cdn.local.epitech.eu/userprofil/profilview/$1.jpg` = "404" ]; then
 	error "Login incorrect"
 	exit
+    fi
+}
+
+get_login()
+{
+    if [ ${#USER} -gt 4 ] && [ ! `curl -o /dev/null --silent --head --write-out '%{http_code}\n' https://cdn.local.epitech.eu/userprofil/profilview/$USER.jpg` = "404" ]; then
+	login=$USER
+    else
+	read -p "Entrez votre login Epitech : " login
     fi
 }
 
@@ -64,7 +67,7 @@ copy_files()
 generate_sshkey()
 {
     if [ ! -f ~/.ssh/id_rsa ]; then
-	info "Generation d'une cle SSH.."
+	info "Generation d'une cle SSH..."
 	echo ssh-keygen -t rsa -b 4096 -f ~/.ssh/id_rsa -q -N ""
     fi
 }
@@ -77,9 +80,7 @@ upload_sshkey()
 
 main()
 {
-    info "Entrez votre login EPITECH :"
-    login=`get_login`
-    check_login $login
+    get_login
     check_root
     copy_files
     generate_sshkey

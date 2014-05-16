@@ -4,6 +4,7 @@ Changelog
 
 1.0 :
 - Installation des scritps de rendu et blih
+- Vérification du md5 des scripts
 - Génération d'une clé SSH
 - Upload de la clé SSH publique sur blih
 
