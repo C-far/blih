@@ -65,7 +65,7 @@ generate_sshkey()
 {
     if [ ! -f ~/.ssh/id_rsa ]; then
 	info "Generation d'une cle SSH.."
-	echo ssh-keygen -t rsa -b 4096 -f ~/.ssh/id_rsa -q -N ""
+	ssh-keygen -t rsa -b 4096 -f ~/.ssh/id_rsa -q -N ""
     fi
 }
 
