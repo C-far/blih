@@ -12,7 +12,7 @@ trap control_c SIGINT
 [ ! -f "/usr/bin/rendu_lib" ] && echo "/usr/bin/rendu_lib not found" >&4 && exit 21
 . /usr/bin/rendu_lib
 
-VERSION=0.1
+VERSION=0.2
 
 MOULINETTE="ramassage-tek"
 
@@ -81,13 +81,13 @@ blih_access()
     if [ -z "$PASS512" ]; then
 	echo -n "Unix Password: " >&3
 	stty -echo
-	read pass
+	read -r pass
 	stty echo
 	verbose ""
 	PASS512=`echo -n "$pass" | sha512sum | cut -f1 -d' '`
     fi
-    BLIH="blih -u ${LOGIN} -t ${PASS512} repository"
-    BLIH_KEY="blih -u ${LOGIN} -t ${PASS512} sshkey"
+    BLIH="blih -U rendu-${VERSION} -u ${LOGIN} -t ${PASS512} repository"
+    BLIH_KEY="blih -U rendu-${VERSION} -u ${LOGIN} -t ${PASS512} sshkey"
     blih_check_network
     res=`${BLIH} list`
     [ $? -eq 1 ] && echo $res | grep -q 401 && error "Invalid Password"
