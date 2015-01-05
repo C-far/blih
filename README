@@ -11,3 +11,7 @@ Changelog
 1.1 :
 - Gestion des logins différents de celui de la session
 - Vérification du login en ligne
+
+1.2 :
+- Blih : python3.3 -> python3
+- Configuration de Git (user.name et user.email)
