@@ -78,6 +78,13 @@ upload_sshkey()
     blih -u $1 sshkey upload ~/.ssh/id_rsa.pub
 }
 
+git_config()
+{
+    info "Configuration de git..."
+    git config --global user.name $1
+    git config --global user.email $1@epitech.eu
+}
+
 main()
 {
     get_login
@@ -85,6 +92,7 @@ main()
     copy_files
     generate_sshkey
     upload_sshkey $login
+    git_config $login
 }
 
 main
