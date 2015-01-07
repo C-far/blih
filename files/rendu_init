@@ -73,7 +73,7 @@ wait_for_creation()
 
 blih_check_network()
 {
-    nc -z "${BLIH_HOST}" 443 || error "Can't join blih server (${BLIH_HOST}). Start checking your connection."
+    netcat -z "${BLIH_HOST}" 443 || error "Can't join blih server (${BLIH_HOST}). Start checking your connection."
 }
 
 blih_access()

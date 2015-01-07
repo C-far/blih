@@ -73,7 +73,7 @@ check_valid_repo()
 
 git_check_network()
 {
-    nc -z "${GIT_HOST}" 22 || error "Can't join turning in servers. Start checking your connection."
+    netcat -z "${GIT_HOST}" 22 || error "Can't join turning in servers. Start checking your connection."
 }
 
 save_project()
